@@ -1,17 +1,6 @@
-use std::{
-    error::Error,
-    ffi::{CStr, CString},
-    io,
-};
-
-use nix::unistd;
+use std::{io, process::Command};
 
 fn main() {
-    use nix::{
-        sys::wait::waitpid,
-        unistd::{fork, write, ForkResult},
-    };
-
     while true {
         let paths = std::fs::read_dir("./apps/").unwrap();
 
@@ -30,41 +19,30 @@ fn main() {
             }
         }
         let chosen_path = paths[index].clone();
-        println!("{}: Name: {}", index, chosen_path.display());
-        match unsafe { fork() } {
-            Ok(ForkResult::Parent { child, .. }) => {
-                println!(
-                    "Continuing execution in parent process, new child has pid: {}",
-                    child
-                );
-                waitpid(child, None).unwrap();
-            }
-            Ok(ForkResult::Child) => {
-                start_app(chosen_path);
-
-                unsafe { libc::_exit(0) };
-            }
-            Err(_) => println!("Fork failed"),
-        }
+        start_app(chosen_path);
     }
 }
 
-fn start_app(chosen_path: std::path::PathBuf) {
-    std::env::set_current_dir(chosen_path);
+fn start_app(chosen_path: std::path::PathBuf) -> io::Result<std::process::Child> {
+    std::env::set_current_dir(chosen_path.clone());
     let paths = std::fs::read_dir("./").unwrap();
-
+    let path_launch = std::fs::canonicalize("./").unwrap();
     let paths: Vec<std::path::PathBuf> = paths.map(|p| p.unwrap().path()).collect();
     for (i, path) in paths.iter().enumerate() {
         println!("{}: Name: {}", i, path.display());
-        let command_string = path.display().to_string();
-        let command: CString = CString::new(command_string.clone()).unwrap();
-        let arg: CString = CString::new(command_string).unwrap();
-        std::env::set_var("PWD", dbg!(std::env::current_dir().unwrap()));
-        let env: Vec<CString> = std::env::vars()
-            .map(|(k, v)| CString::new(format!("{k}={v}")).unwrap())
-            .collect();
-        dbg!(unistd::execve(&dbg!(command), &[arg], &dbg!(env)));
+        // FIXME: this still fails to load assets in bevy because of "current_exe" stil referring to Launcher https://github.com/bevyengine/bevy/pull/1801
+        match Command::new(dbg!(path.display().to_string()))
+            .current_dir(dbg!(path_launch.clone()))
+            .spawn()
+        {
+            Ok(child) => {
+                dbg!("great");
+                return Ok(child);
+            }
+            Err(e) => dbg!(e),
+        };
     }
+    Err(io::Error::new(io::ErrorKind::Other, "fuck"))
 }
 
 fn read_line(arg: &str) -> Result<usize, ()> {
