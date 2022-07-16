@@ -9,7 +9,6 @@ You can copy test_apps to apps for a minimal test.
 example hierarchy: 
 
 <pre>
-./
 ./apps
 --- ls/
     --- ls.sh
