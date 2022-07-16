@@ -3,7 +3,10 @@ Launcher for rust arcade cabinet
 # How to
 
 Put executable folders in ./apps/ (it's gitignored)
-example: 
+
+You can copy test_apps to apps for a minimal test.
+
+example hierarchy: 
 
 <pre>
 ./
