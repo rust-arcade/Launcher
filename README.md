@@ -6,6 +6,8 @@ Put executable folders in ./apps/ (it's gitignored)
 
 You can copy test_apps to apps for a minimal test.
 
+There is a binary for windows setup as an example, but sources are provided, don't forget the executable should be in `apps/(any_name)/` folder.
+
 example hierarchy: 
 
 <pre>
@@ -21,4 +23,4 @@ example hierarchy:
 
 # Dev notes
 
-check https://github.com/fishfight/FishLauncher for ideas
+- check https://github.com/fishfight/FishLauncher for ideas
