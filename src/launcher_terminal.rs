@@ -12,7 +12,9 @@ pub fn run() {
             }
         }
         let chosen_path = paths[index].clone();
-        crate::core::launch_app(chosen_path);
+        if let Ok(mut child) = crate::core::launch_app(chosen_path) {
+            child.wait();
+        };
     }
 }
 
