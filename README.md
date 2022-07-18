@@ -10,10 +10,10 @@ example hierarchy:
 
 <pre>
 ./apps
---- ls/
-    --- ls.sh
---- bevy_app/
-    --- executable
+--- game1/
+    --- game1.sh
+--- game2_using_bevy/
+    --- executable_name
     --- assets/
         --- images.png
 ...
