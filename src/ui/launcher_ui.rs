@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::buttons;
 use super::buttons::ButtonPlugin;
 use bevy::{prelude::*, winit::WinitSettings};
@@ -9,8 +11,14 @@ impl Plugin for LauncherUI {
         app.add_plugin(ButtonPlugin)
             // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
             .insert_resource(WinitSettings::desktop_app())
-            .add_startup_system(setup);
+            .add_startup_system(setup)
+            .add_system(button_to_launch);
     }
+}
+
+#[derive(Component)]
+struct AppData {
+    pub path: PathBuf,
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -50,6 +58,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         color: buttons::NORMAL_BUTTON.into(),
                         ..default()
                     })
+                    .insert(AppData { path: path.clone() })
                     .with_children(|parent| {
                         parent.spawn_bundle(TextBundle {
                             text: Text::with_section(
@@ -66,4 +75,20 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     });
             }
         });
+}
+
+fn button_to_launch(
+    mut interaction_query: Query<(&Interaction, &AppData), (Changed<Interaction>, With<Button>)>,
+) {
+    for (interaction, data) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                if let Ok(mut child) = crate::core::launch_app(&data.path) {
+                    child.wait();
+                };
+            }
+            Interaction::Hovered => {}
+            Interaction::None => {}
+        }
+    }
 }

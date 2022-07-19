@@ -9,9 +9,9 @@ pub fn list_games() -> Vec<std::path::PathBuf> {
 
 use std::{io, path::PathBuf, process::Command};
 
-pub fn launch_app(chosen_path: PathBuf) -> io::Result<std::process::Child> {
-    let paths = std::fs::read_dir(&chosen_path).unwrap();
-    let path_launch = std::fs::canonicalize(&chosen_path).unwrap();
+pub fn launch_app(chosen_path: &PathBuf) -> io::Result<std::process::Child> {
+    let paths = std::fs::read_dir(chosen_path).unwrap();
+    let path_launch = std::fs::canonicalize(chosen_path).unwrap();
     let paths: Vec<PathBuf> = paths.map(|p| p.unwrap().path()).collect();
     let asset_root = path_launch.clone();
     for (i, path) in paths.iter().enumerate() {
