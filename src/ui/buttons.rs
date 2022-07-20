@@ -4,7 +4,7 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(DefaultPlugins)
+        app
             // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
             .add_system(button_system);
     }

@@ -2,17 +2,23 @@ use std::path::PathBuf;
 
 use super::buttons;
 use super::buttons::ButtonPlugin;
-use bevy::{prelude::*, winit::WinitSettings};
+use bevy::{prelude::*, window::WindowMode, winit::WinitSettings};
 
 pub struct LauncherUI;
 
 impl Plugin for LauncherUI {
     fn build(&self, app: &mut App) {
-        app.add_plugin(ButtonPlugin)
-            // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
-            .insert_resource(WinitSettings::desktop_app())
-            .add_startup_system(setup)
-            .add_system(button_to_launch);
+        app.insert_resource(WindowDescriptor {
+            resizable: false,
+            mode: WindowMode::BorderlessFullscreen,
+            ..default()
+        })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(ButtonPlugin)
+        // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
+        .insert_resource(WinitSettings::desktop_app())
+        .add_startup_system(setup)
+        .add_system(button_to_launch);
     }
 }
 
