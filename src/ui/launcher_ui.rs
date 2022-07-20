@@ -1,8 +1,16 @@
 use std::path::PathBuf;
 
+use crate::ui::launcher_ui::inputs::Selectable;
+
+use self::{fake_arcade::KeyToArcade, inputs::InputPlugin};
+
 use super::buttons;
 use super::buttons::ButtonPlugin;
 use bevy::{prelude::*, window::WindowMode, winit::WinitSettings};
+
+mod bevy_rust_arcade;
+mod fake_arcade;
+pub mod inputs;
 
 pub struct LauncherUI;
 
@@ -14,11 +22,15 @@ impl Plugin for LauncherUI {
             ..default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(bevy_rust_arcade::RustArcadePlugin)
+        .add_plugin(InputPlugin)
         .add_plugin(ButtonPlugin)
         // Only run the app when there is user input. This will significantly reduce CPU/GPU use.
         .insert_resource(WinitSettings::desktop_app())
         .add_startup_system(setup)
-        .add_system(button_to_launch);
+        .add_system(button_to_launch)
+        .insert_resource(KeyToArcade::default())
+        .add_system(fake_arcade::input_system);
     }
 }
 
@@ -65,6 +77,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     })
                     .insert(AppData { path: path.clone() })
+                    .insert(Selectable::new(i))
                     .with_children(|parent| {
                         parent.spawn_bundle(TextBundle {
                             text: Text::with_section(
