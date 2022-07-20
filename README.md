@@ -16,12 +16,12 @@ example hierarchy:
 ./apps
 --- unix_app/
     --- ls.sh
---- bevy_app/
-    --- executable
+--- game_using_bevy/
+    --- executable_name
     --- assets/
         --- images.png
---- test_app/
-    --- test_app
+--- windows_app/
+    --- test_app.exe
 ...
 </pre>
 
