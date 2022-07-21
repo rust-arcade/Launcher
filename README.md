@@ -23,6 +23,11 @@ Example hierarchy:
 ...
 </pre>
 
+# How to
+
+- arrows to select game to launch
+- right shift to select
+
 # Dev notes
 
 - Multiple binaries per app is not really supported, as it's currently undetermined which one would be run.

@@ -79,18 +79,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     .insert(AppData { path: path.clone() })
                     .insert(Selectable::new(i))
                     .with_children(|parent| {
-                        parent.spawn_bundle(TextBundle {
-                            text: Text::with_section(
-                                path.file_name().unwrap().to_string_lossy(),
-                                TextStyle {
-                                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                    font_size: 40.0,
-                                    color: Color::rgb(0.9, 0.9, 0.9),
-                                },
-                                Default::default(),
-                            ),
-                            ..default()
-                        });
+                        parent.spawn_bundle(TextBundle::from_sections([TextSection::new(
+                            path.file_name().unwrap().to_string_lossy(),
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                            },
+                        )]));
                     });
             }
         });

@@ -6,4 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = {git = "https://github.com/bevyengine/bevy.git", branch = "main"}
+bevy = {git = "https://github.com/bevyengine/bevy.git", commit = "1c23421f4141c1e93c120ccfc27ed86edc3488af"}
