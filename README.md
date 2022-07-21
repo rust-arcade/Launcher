@@ -3,9 +3,10 @@ Launcher for rust arcade cabinet
 # How to
 
 - Put executable folders in ./apps/ (it's gitignored)
-- You can copy test_apps/* to apps/ for a minimal test.
+- You can copy test_apps/*.exe to apps/ for a minimal test.
+- Check fullscreen example on windows and hit ESC to exit
 
-There is a binary for windows setup as an example, but sources are provided, don't forget the executable should be in `apps/(any_name)/` folder.
+There is binaries for windows set up as examples, but sources are provided, don't forget the executable should be in `apps/(display_name)/` folder.
 
 Example hierarchy: 
 
