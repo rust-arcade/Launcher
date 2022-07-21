@@ -23,10 +23,10 @@ Example hierarchy:
 ...
 </pre>
 
-# How to
+# Controls
 
-- arrows to select game to launch
-- right shift to select
+- arrows / joystick: to select game to launch
+- right shift / joystick button: to launch
 
 # Dev notes
 
