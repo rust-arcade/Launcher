@@ -1,6 +1,16 @@
 pub fn list_games() -> Vec<std::path::PathBuf> {
     let paths = std::fs::read_dir("./apps/").unwrap();
-    let paths: Vec<std::path::PathBuf> = paths.map(|p| p.unwrap().path()).collect();
+    let paths: Vec<std::path::PathBuf> = paths
+        .map(|p| p.unwrap().path())
+        .filter(|p| {
+            if let Some(extension) = dbg!(p.extension()) {
+                extension.to_str().unwrap() != "meta"
+            } else {
+                true
+            }
+        })
+        .collect();
+
     for (i, path) in paths.iter().enumerate() {
         println!("{}: Name: {}", i, path.display());
     }

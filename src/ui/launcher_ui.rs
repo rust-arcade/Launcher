@@ -1,8 +1,9 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 use crate::ui::launcher_ui::inputs::Selectable;
 
 use self::{fake_arcade::KeyToArcade, inputs::InputPlugin};
+use serde::Deserialize;
 
 use super::buttons;
 use super::buttons::ButtonPlugin;
@@ -38,6 +39,10 @@ impl Plugin for LauncherUI {
 struct AppData {
     pub path: PathBuf,
 }
+#[derive(Component, Deserialize, Debug)]
+struct AppMeta {
+    pub description: String,
+}
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui camera
@@ -61,22 +66,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             for (i, path) in paths.iter().enumerate() {
                 dbg!(i);
-                parent
-                    .spawn_bundle(ButtonBundle {
-                        style: Style {
-                            size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                            // center button
-                            margin: UiRect::all(Val::Auto),
-                            // horizontally center child text
-                            justify_content: JustifyContent::Center,
-                            // vertically center child text
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        color: buttons::NORMAL_BUTTON.into(),
+                let mut launchable = parent.spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                        // center button
+                        margin: UiRect::all(Val::Auto),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
                         ..default()
-                    })
-                    .insert(AppData { path: path.clone() })
+                    },
+                    color: buttons::NORMAL_BUTTON.into(),
+                    ..default()
+                });
+                launchable.insert(AppData { path: path.clone() });
+                dbg!(path.file_name());
+                if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
+                    let mut file_name = String::from(file_name);
+                    file_name.push_str(".meta");
+                    let meta_path = path.with_file_name(file_name);
+                    if let Ok(contents) = fs::read_to_string(meta_path) {
+                        let deserialized: AppMeta = serde_json::from_str(&contents).unwrap();
+                        dbg!(deserialized);
+                    }
+                }
+                launchable
                     .insert(Selectable::new(i))
                     .with_children(|parent| {
                         parent.spawn_bundle(TextBundle::from_sections([TextSection::new(
