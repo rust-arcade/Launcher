@@ -2,7 +2,10 @@ use std::{fs, path::PathBuf};
 
 use crate::ui::launcher_ui::inputs::Selectable;
 
-use self::{fake_arcade::KeyToArcade, inputs::InputPlugin};
+use self::{
+    fake_arcade::KeyToArcade,
+    inputs::{CurrentSelection, InputPlugin},
+};
 use serde::Deserialize;
 
 use super::buttons;
@@ -31,7 +34,8 @@ impl Plugin for LauncherUI {
         .add_startup_system(setup)
         .add_system(button_to_launch)
         .insert_resource(KeyToArcade::default())
-        .add_system(fake_arcade::input_system);
+        .add_system(fake_arcade::input_system)
+        .add_system(big_image_background);
     }
 }
 
@@ -40,15 +44,54 @@ struct AppData {
     pub path: PathBuf,
 }
 #[derive(Component, Deserialize, Debug)]
+struct AppMetaSerialized {
+    pub description: String,
+    pub image_path: Option<String>,
+}
+#[derive(Component, Debug)]
 struct AppMeta {
     pub description: String,
+    pub image: Handle<Image>,
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+#[derive(Component, Debug)]
+struct BigPreview;
+
+fn setup(
+    mut commands: Commands,
+    mut windows: ResMut<Windows>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    asset_server: Res<AssetServer>,
+) {
     // ui camera
     commands.spawn_bundle(Camera2dBundle::default());
+    let handle_placeholder_big = asset_server.load("placeholder_big.png");
 
     let paths = crate::core::list_games();
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                position_type: PositionType::Absolute,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            color: Color::NONE.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(ImageBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                        ..default()
+                    },
+                    image: handle_placeholder_big.clone().into(),
+                    ..default()
+                })
+                .insert(BigPreview);
+        });
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -87,8 +130,22 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     file_name.push_str(".meta");
                     let meta_path = path.with_file_name(file_name);
                     if let Ok(contents) = fs::read_to_string(meta_path) {
-                        let deserialized: AppMeta = serde_json::from_str(&contents).unwrap();
-                        dbg!(deserialized);
+                        let deserialized: AppMetaSerialized =
+                            serde_json::from_str(&contents).unwrap();
+                        let image_big_handle = if let Some(big_image_path) = deserialized.image_path
+                        {
+                            asset_server.load(dbg!(&format!(
+                                "../{}/{}",
+                                path.to_str().unwrap(),
+                                big_image_path.clone()
+                            )))
+                        } else {
+                            handle_placeholder_big.clone()
+                        };
+                        launchable.insert(AppMeta {
+                            description: deserialized.description,
+                            image: image_big_handle,
+                        });
                     }
                 }
                 launchable
@@ -105,12 +162,21 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     });
             }
         });
+    let window = windows.get_primary_mut().unwrap();
+    let quad_handle = meshes.add(Mesh::from(shape::Quad::new(Vec2::new(
+        window.physical_width() as f32,
+        window.physical_height() as f32,
+    ))));
 }
 
 fn button_to_launch(
-    mut interaction_query: Query<(&Interaction, &AppData), (Changed<Interaction>, With<Button>)>,
+    mut interaction_query: Query<
+        (&Interaction, &AppData, Option<&AppMeta>),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut big_preview: Query<&mut UiImage, With<BigPreview>>,
 ) {
-    for (interaction, data) in &mut interaction_query {
+    for (interaction, data, meta) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 if let Ok(mut child) = crate::core::launch_app(&data.path) {
@@ -119,6 +185,24 @@ fn button_to_launch(
             }
             Interaction::Hovered => {}
             Interaction::None => {}
+        }
+    }
+}
+
+fn big_image_background(
+    mut selection: ResMut<CurrentSelection>,
+    interaction_query: Query<(&Selectable, &AppData, Option<&AppMeta>), With<Button>>,
+    mut big_preview: Query<&mut UiImage, With<BigPreview>>,
+) {
+    if selection.is_changed() {
+        for (i, (_, app_data, meta)) in interaction_query.iter().enumerate() {
+            if i == selection.get() {
+                if let Some(meta) = meta {
+                    dbg!("change back");
+                    let mut handle = big_preview.single_mut();
+                    handle.0 = meta.image.clone();
+                }
+            }
         }
     }
 }
