@@ -1,4 +1,4 @@
 {
-    "description": "minimal bevy app, using fullscreen. Quit with ESC key.",
-    "image": "meta/test_app.png"
+    "description": "This should print HelloWorld in the console, that's all.",
+    "image_path": "meta/test_app.png"
 }

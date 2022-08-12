@@ -1,0 +1,4 @@
+{
+    "description": "A test program running ls, written in bash, UNIX only.",
+    "image_path": "meta/thumbnail.png"
+}
