@@ -17,3 +17,5 @@ Cargo.lock
 # Custom
 
 /apps/*
+
+.DS_Store

@@ -61,12 +61,7 @@ struct BigPreview;
 #[derive(Component, Debug)]
 struct Description;
 
-fn setup(
-    mut commands: Commands,
-    mut windows: ResMut<Windows>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    asset_server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui camera
     commands.spawn_bundle(Camera2dBundle::default());
     let handle_placeholder_big = asset_server.load("placeholder_big.png");
@@ -141,7 +136,6 @@ fn setup(
         })
         .with_children(|parent| {
             for (i, path) in paths.iter().enumerate() {
-                dbg!(i);
                 let mut launchable = parent.spawn_bundle(ButtonBundle {
                     style: Style {
                         size: Size::new(Val::Px(150.0), Val::Px(65.0)),
@@ -157,7 +151,6 @@ fn setup(
                     ..default()
                 });
                 launchable.insert(AppData { path: path.clone() });
-                dbg!(path.file_name());
                 if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
                     let mut file_name = String::from(file_name);
                     file_name.push_str(".meta");
@@ -167,11 +160,11 @@ fn setup(
                             serde_json::from_str(&contents).unwrap();
                         let image_big_handle = if let Some(big_image_path) = deserialized.image_path
                         {
-                            asset_server.load(dbg!(&format!(
+                            asset_server.load(&format!(
                                 "../{}/{}",
                                 path.to_str().unwrap(),
                                 big_image_path.clone()
-                            )))
+                            ))
                         } else {
                             handle_placeholder_big.clone()
                         };
@@ -195,21 +188,12 @@ fn setup(
                     });
             }
         });
-    let window = windows.get_primary_mut().unwrap();
-    let quad_handle = meshes.add(Mesh::from(shape::Quad::new(Vec2::new(
-        window.physical_width() as f32,
-        window.physical_height() as f32,
-    ))));
 }
 
 fn button_to_launch(
-    mut interaction_query: Query<
-        (&Interaction, &AppData, Option<&AppMeta>),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut big_preview: Query<&mut UiImage, With<BigPreview>>,
+    mut interaction_query: Query<(&Interaction, &AppData), (Changed<Interaction>, With<Button>)>,
 ) {
-    for (interaction, data, meta) in &mut interaction_query {
+    for (interaction, data) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 if let Ok(mut child) = crate::core::launch_app(&data.path) {
@@ -223,32 +207,31 @@ fn button_to_launch(
 }
 
 fn big_image_background(
-    mut selection: ResMut<CurrentSelection>,
-    interaction_query: Query<(&Selectable, &AppData, Option<&AppMeta>), With<Button>>,
+    selection: Res<CurrentSelection>,
+    interaction_query: Query<Option<&AppMeta>, (With<Selectable>, With<AppData>, With<Button>)>,
     mut big_preview: Query<&mut UiImage, With<BigPreview>>,
 ) {
     if selection.is_changed() {
-        for (i, (_, app_data, meta)) in interaction_query.iter().enumerate() {
+        for (i, meta) in interaction_query.iter().enumerate() {
             if i == selection.get() {
                 if let Some(meta) = meta {
-                    dbg!("change back");
                     let mut handle = big_preview.single_mut();
                     handle.0 = meta.image.clone();
                 }
+                // TODO: put placeholder image to see the change
             }
         }
     }
 }
 fn description_background(
-    mut selection: ResMut<CurrentSelection>,
-    interaction_query: Query<(&Selectable, &AppData, Option<&AppMeta>), With<Button>>,
+    selection: Res<CurrentSelection>,
+    interaction_query: Query<Option<&AppMeta>, (With<Selectable>, With<AppData>, With<Button>)>,
     mut description: Query<&mut Text, With<Description>>,
 ) {
     if selection.is_changed() {
-        for (i, (_, app_data, meta)) in interaction_query.iter().enumerate() {
+        for (i, meta) in interaction_query.iter().enumerate() {
             if i == selection.get() {
                 if let Some(meta) = meta {
-                    dbg!("change description");
                     let mut text = description.single_mut();
                     text.sections[0].value = meta.description.clone();
                 }
