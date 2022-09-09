@@ -1,0 +1,4 @@
+{
+    "description": "minimal bevy app, using fullscreen. Quit with ESC key.",
+    "image_path": "meta/fullscreen.png"
+}

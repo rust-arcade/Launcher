@@ -1,5 +1,5 @@
 [package]
-name = "Launcher"
+name = "launcher"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 bevy = {git = "https://github.com/bevyengine/bevy.git", rev = "1c23421f4141c1e93c120ccfc27ed86edc3488af"}
+serde = "1.0.140"
+serde_json = "1.0.82"
